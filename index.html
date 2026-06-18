@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Elements Mail</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f3;height:100vh;display:flex;flex-direction:column}
+.topbar{background:#0F6E56;color:#fff;padding:0 20px;height:52px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.topbar .logo{font-size:15px;font-weight:600}
+.topbar .account{margin-left:auto;font-size:12px;opacity:0.8}
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:196px;background:#fff;border-right:1px solid #e0e8e5;padding:12px 8px;display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.compose-btn{background:#0F6E56;color:#fff;border:none;border-radius:24px;padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:10px;box-shadow:0 2px 6px rgba(15,110,86,0.3)}
+.compose-btn:hover{background:#1D9E75}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:20px;cursor:pointer;font-size:13px;color:#444}
+.nav-item:hover{background:#f0f4f3}
+.nav-item.active{background:#E1F5EE;color:#085041;font-weight:500}
+.badge{margin-left:auto;background:#0F6E56;color:#fff;font-size:11px;padding:1px 7px;border-radius:20px;font-weight:600;display:none}
+.list-panel{width:320px;background:#fff;border-right:1px solid #e0e8e5;display:flex;flex-direction:column;flex-shrink:0}
+.list-header{padding:12px 16px;border-bottom:1px solid #e0e8e5;display:flex;align-items:center;gap:8px}
+.list-header h2{font-size:15px;font-weight:600;flex:1;color:#1a1a1a}
+.refresh-btn{display:flex;align-items:center;gap:4px;font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid #e0e8e5;background:#fff;color:#666;cursor:pointer}
+.refresh-btn:hover{background:#f0f4f3;border-color:#0F6E56;color:#0F6E56}
+.last-check{font-size:11px;color:#999;padding:4px 16px 6px;background:#fafafa;border-bottom:1px solid #e0e8e5}
+.search-bar{padding:8px 12px;border-bottom:1px solid #e0e8e5}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#999;font-size:14px}
+.search-wrap input{width:100%;padding:7px 10px 7px 32px;border:1px solid #e0e8e5;border-radius:20px;font-size:13px;background:#f5f5f5;outline:none}
+.search-wrap input:focus{border-color:#0F6E56;background:#fff}
+.email-list{overflow-y:auto;flex:1}
+.email-item{padding:12px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.1s;position:relative}
+.email-item:hover{background:#f9fafb}
+.email-item:hover .del-email{display:flex}
+.email-item.active{background:#E1F5EE}
+.email-item.unread .sender{font-weight:600;color:#1a1a1a}
+.email-item.unread .subject{font-weight:600;color:#1a1a1a}
+.row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.sender{font-size:13px;color:#555;display:flex;align-items:center;gap:6px}
+.etime{font-size:11px;color:#aaa;white-space:nowrap}
+.subject{font-size:13px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.preview{font-size:12px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:8px;height:8px;background:#0F6E56;border-radius:50%;flex-shrink:0}
+.del-email{display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:#fff;border:1px solid #e0e8e5;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:#aaa;z-index:1}
+.del-email:hover{color:#e53e3e;border-color:#e53e3e}
+.detail-panel{flex:1;display:flex;flex-direction:column;min-width:0;background:#fff}
+.detail-toolbar{padding:10px 20px;border-bottom:1px solid #e0e8e5;display:flex;align-items:center;gap:6px}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:16px;color:#666;transition:background 0.1s}
+.icon-btn:hover{background:#f0f4f3}
+.detail-body{flex:1;overflow-y:auto;padding:24px 28px}
+.detail-subject{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:16px}
+.detail-meta{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f0f0f0}
+.avatar{width:40px;height:40px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#0F6E56;flex-shrink:0}
+.meta-info{flex:1}
+.meta-from{font-size:14px;font-weight:600;color:#1a1a1a}
+.meta-to{font-size:12px;color:#999;margin-top:2px}
+.meta-time{font-size:12px;color:#aaa;white-space:nowrap}
+.attachments-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.att-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:#f0f4f3;border:1px solid #e0e8e5;font-size:12px;color:#444}
+.detail-content{font-size:14px;line-height:1.75;color:#444;white-space:pre-wrap}
+.detail-actions{padding:12px 20px;border-top:1px solid #e0e8e5;display:flex;gap:8px}
+.action-btn{padding:8px 18px;border-radius:20px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;border:1px solid #e0e8e5;background:#fff;color:#444}
+.action-btn:hover{background:#f0f4f3;border-color:#0F6E56;color:#0F6E56}
+.action-btn.danger{color:#e53e3e}
+.action-btn.danger:hover{border-color:#e53e3e;background:#fff5f5}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#aaa;height:100%}
+.empty p{font-size:14px}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#999;font-size:14px}
+.spin{display:inline-block;width:24px;height:24px;border:2px solid #e0e8e5;border-top-color:#0F6E56;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.compose-modal{display:none;position:fixed;bottom:0;right:24px;width:540px;height:500px;background:#fff;border-radius:12px 12px 0 0;box-shadow:0 -4px 32px rgba(0,0,0,0.12);flex-direction:column;z-index:100;border:1px solid #e0e8e5;border-bottom:none}
+.compose-modal.open{display:flex}
+.compose-titlebar{padding:12px 16px;background:#0F6E56;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;color:#fff;font-size:14px;font-weight:500}
+.compose-close{cursor:pointer;font-size:18px}
+.compose-field{padding:7px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+.compose-field label{font-size:12px;color:#999;width:56px;flex-shrink:0}
+.compose-field input{flex:1;border:none;outline:none;font-size:13px;color:#1a1a1a}
+.compose-receipts{padding:8px 16px;border-bottom:1px solid #f0f0f0;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.compose-receipts .rlabel{font-size:12px;color:#999}
+.toggle-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;cursor:pointer}
+.toggle{width:34px;height:19px;border-radius:20px;background:#e0e0e0;position:relative;transition:background 0.2s;flex-shrink:0}
+.toggle.on{background:#0F6E56}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle.on::after{left:17px}
+.compose-attach{padding:6px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.attach-btn{display:flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid #e0e8e5;background:#fff;color:#666;cursor:pointer}
+.attach-btn:hover{border-color:#0F6E56;color:#0F6E56}
+.attach-list{display:flex;gap:6px;flex-wrap:wrap}
+.attach-tag{display:flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:20px;background:#E1F5EE;color:#085041}
+.attach-tag span{cursor:pointer;opacity:0.6}
+.attach-tag span:hover{opacity:1}
+.compose-body{flex:1;padding:10px 16px}
+.compose-body textarea{width:100%;height:100%;border:none;outline:none;font-size:13px;resize:none;color:#1a1a1a;line-height:1.6}
+.compose-footer{padding:10px 16px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.send-btn{background:#0F6E56;color:#fff;border:none;border-radius:20px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.send-btn:hover{background:#1D9E75}
+.send-btn:disabled{opacity:0.6;cursor:not-allowed}
+.del-btn{background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;padding:4px;border-radius:50%}
+.del-btn:hover{color:#e53e3e}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:24px;font-size:13px;font-weight:500;display:none;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.12)}
+.toast.ok{background:#0F6E56;color:#fff}
+.toast.err{background:#e53e3e;color:#fff}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">💧 Green Elements Mail</div>
+  <div class="account">jramirez@greenelements.mx</div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <button class="compose-btn" onclick="openCompose()">✏️ Redactar</button>
+    <div class="nav-item active" onclick="setFolder(this,'INBOX')">📥 Recibidos <span class="badge" id="badge"></span></div>
+    <div class="nav-item" onclick="setFolder(this,'Sent')">📤 Enviados</div>
+    <div class="nav-item" onclick="setFolder(this,'Drafts')">📝 Borradores</div>
+    <div class="nav-item" onclick="setFolder(this,'Junk')">🚫 Spam</div>
+    <div class="nav-item" onclick="setFolder(this,'Trash')">🗑️ Papelera</div>
+  </div>
+  <div class="list-panel">
+    <div class="list-header">
+      <h2 id="folder-title">Recibidos</h2>
+      <button class="refresh-btn" id="refresh-btn" onclick="checkNew()">🔄 Actualizar</button>
+    </div>
+    <div class="last-check" id="last-check">Última revisión: —</div>
+    <div class="search-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar correos..." id="search-input" oninput="filterEmails(this.value)">
+      </div>
+    </div>
+    <div class="email-list" id="email-list">
+      <div class="loading"><div class="spin"></div>Cargando correos...</div>
+    </div>
+  </div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="empty"><p>Selecciona un correo para leerlo</p></div>
+  </div>
+</div>
+
+<div class="compose-modal" id="compose">
+  <div class="compose-titlebar">Nuevo mensaje <span class="compose-close" onclick="closeCompose()">✕</span></div>
+  <div class="compose-field"><label>Para</label><input type="email" id="c-to" placeholder="destinatario@email.com"></div>
+  <div class="compose-field"><label>CC</label><input type="email" id="c-cc"></div>
+  <div class="compose-field"><label>Asunto</label><input type="text" id="c-subject" placeholder="Asunto del correo"></div>
+  <div class="compose-receipts">
+    <span class="rlabel">Solicitar:</span>
+    <div class="toggle-wrap" onclick="toggleR('delivery')"><div class="toggle" id="tr-delivery"></div> ✅ Entrega</div>
+    <div class="toggle-wrap" onclick="toggleR('read')"><div class="toggle" id="tr-read"></div> 👁️ Lectura</div>
+  </div>
+  <div class="compose-attach">
+    <button class="attach-btn" onclick="document.getElementById('file-input').click()">📎 Adjuntar archivo</button>
+    <input type="file" id="file-input" multiple style="display:none" onchange="addAttachments(this)">
+    <div class="attach-list" id="attach-list"></div>
+  </div>
+  <div class="compose-body"><textarea id="c-body" placeholder="Escribe tu mensaje aquí..."></textarea></div>
+  <div class="compose-footer">
+    <button class="send-btn" id="send-btn" onclick="sendEmail()">✉️ Enviar</button>
+    <button class="del-btn" onclick="closeCompose()">🗑️</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let emails = [], selectedId = null, receipts = {delivery:false,read:false};
+let knownIds = new Set(), attachFiles = [], currentFolder = 'INBOX';
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast '+type; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3500);
+}
+
+function toggleR(type) {
+  receipts[type] = !receipts[type];
+  document.getElementById('tr-'+type).classList.toggle('on', receipts[type]);
+}
+
+function addAttachments(input) {
+  Array.from(input.files).forEach(f => {
+    if (!attachFiles.find(x=>x.name===f.name)) attachFiles.push(f);
+  });
+  renderAttachList();
+  input.value = '';
+}
+
+function removeAttach(name) {
+  attachFiles = attachFiles.filter(f=>f.name!==name);
+  renderAttachList();
+}
+
+function renderAttachList() {
+  document.getElementById('attach-list').innerHTML = attachFiles.map(f=>
+    `<span class="attach-tag">📎 ${f.name} <span onclick="removeAttach('${f.name}')">✕</span></span>`
+  ).join('');
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function timeStr(d) {
+  if (!d) return '';
+  const date = new Date(d), now = new Date(), diff = now - date;
+  const m=Math.floor(diff/60000), h=Math.floor(diff/3600000), dy=Math.floor(diff/86400000);
+  if (m<2) return 'ahora';
+  if (m<60) return m+'m';
+  if (h<24) return h+'h';
+  if (dy<7) return dy+'d';
+  return date.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+}
+
+function updateCheck() {
+  document.getElementById('last-check').textContent = 'Última revisión: '+new Date().toLocaleTimeString('es-MX');
+}
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    const e = await r.json().catch(()=>({error:'Error desconocido'}));
+    throw new Error(e.error || 'Error '+r.status);
+  }
+  return r.json();
+}
+
+async function loadEmails() {
+  document.getElementById('email-list').innerHTML = '<div class="loading"><div class="spin"></div>Cargando...</div>';
+  try {
+    emails = await api('/api/emails?folder='+currentFolder);
+    knownIds = new Set(emails.map(e=>e.id));
+    renderList();
+    const u = emails.filter(e=>e.unread).length;
+    const b = document.getElementById('badge');
+    b.textContent = u; b.style.display = (u && currentFolder==='INBOX') ? 'inline' : 'none';
+    updateCheck();
+  } catch(e) {
+    document.getElementById('email-list').innerHTML = `<div class="loading" style="color:#e53e3e">⚠️ ${e.message}</div>`;
+  }
+}
+
+async function checkNew() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '⏳'; btn.disabled = true;
+  try {
+    const fresh = await api('/api/emails?folder='+currentFolder);
+    const newCount = fresh.filter(e=>!knownIds.has(e.id)).length;
+    emails = fresh;
+    knownIds = new Set(fresh.map(e=>e.id));
+    renderList();
+    updateCheck();
+    if (newCount>0) toast(`📬 ${newCount} correo${newCount>1?'s':''} nuevo${newCount>1?'s':''}`);
+    else toast('Sin correos nuevos');
+  } catch(e) { toast(e.message,'err'); }
+  finally { btn.textContent='🔄 Actualizar'; btn.disabled=false; }
+}
+
+function renderList(filter='') {
+  const f = filter.toLowerCase();
+  const list = f ? emails.filter(e=>(e.from||'').toLowerCase().includes(f)||(e.subject||'').toLowerCase().includes(f)) : emails;
+  if (!list.length) { document.getElementById('email-list').innerHTML='<div class="loading" style="color:#aaa">Sin resultados</div>'; return; }
+  document.getElementById('email-list').innerHTML = list.map(e=>`
+    <div class="email-item ${e.unread?'unread':''} ${selectedId==e.id?'active':''}" onclick="openEmail(${e.id})">
+      <div class="row1">
+        <span class="sender">${e.unread?'<span class="dot"></span>':''}${(e.from||'Sin remitente').replace(/<.*>/,'').trim()}</span>
+        <span class="etime">${timeStr(e.date)}</span>
+      </div>
+      <div class="subject">${e.subject||'(Sin asunto)'}</div>
+      <div class="preview">${e.preview||''}</div>
+      <button class="del-email" onclick="event.stopPropagation();deleteEmail(${e.id})" title="Eliminar">🗑️</button>
+    </div>`).join('');
+}
+
+function filterEmails(v){renderList(v);}
+
+function setFolder(el, folder){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  currentFolder = folder;
+  const names = {INBOX:'Recibidos', Sent:'Enviados', Drafts:'Borradores', Junk:'Spam', Trash:'Papelera'};
+  document.getElementById('folder-title').textContent = names[folder] || folder;
+  clearDetail();
+  loadEmails();
+}
+
+async function openEmail(id) {
+  selectedId = id;
+  renderList(document.getElementById('search-input').value);
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = '<div class="loading"><div class="spin"></div>Cargando...</div>';
+  try {
+    const msg = await api(`/api/emails/${id}`);
+    const atts = msg.attachments && msg.attachments.length > 0
+      ? `<div class="attachments-bar">${msg.attachments.map(a=>`<span class="att-pill">📎 ${a.name}</span>`).join('')}</div>`
+      : '';
+    panel.innerHTML = `
+      <div class="detail-toolbar">
+        <button class="icon-btn" onclick="clearDetail()" title="Volver">←</button>
+        <button class="icon-btn" onclick="reply(${id})" title="Responder">↩</button>
+        <button class="icon-btn" onclick="forward(${id})" title="Reenviar">↪</button>
+        <button class="icon-btn" onclick="deleteEmail(${id})" title="Eliminar" style="margin-left:auto;color:#e53e3e">🗑️</button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-subject">${msg.subject||'(Sin asunto)'}</div>
+        <div class="detail-meta">
+          <div class="avatar">${initials(msg.from)}</div>
+          <div class="meta-info">
+            <div class="meta-from">${msg.from||''}</div>
+            <div class="meta-to">Para: ${msg.to||''}</div>
+          </div>
+          <div class="meta-time">${msg.date?new Date(msg.date).toLocaleString('es-MX'):''}</div>
+        </div>
+        ${atts}
+        ${msg.html?`<div style="font-size:14px;line-height:1.75">${msg.html}</div>`:`<div class="detail-content">${msg.text||''}</div>`}
+      </div>
+      <div class="detail-actions">
+        <button class="action-btn" onclick="reply(${id})">↩ Responder</button>
+        <button class="action-btn" onclick="forward(${id})">↪ Reenviar</button>
+        <button class="action-btn danger" onclick="deleteEmail(${id})">🗑️ Eliminar</button>
+      </div>`;
+  } catch(e) { panel.innerHTML=`<div class="empty"><p>Error: ${e.message}</p></div>`; }
+}
+
+async function deleteEmail(id) {
+  if (!confirm('¿Eliminar este correo?')) return;
+  try {
+    await api(`/api/emails/${id}`, { method: 'DELETE' });
+    emails = emails.filter(e=>e.id!=id);
+    if (selectedId==id) clearDetail();
+    renderList(document.getElementById('search-input').value);
+    toast('Correo eliminado');
+  } catch(e) { toast('Error al eliminar: '+e.message,'err'); }
+}
+
+function clearDetail(){
+  selectedId=null;
+  document.getElementById('detail-panel').innerHTML='<div class="empty"><p>Selecciona un correo para leerlo</p></div>';
+}
+
+function reply(id){
+  const e=emails.find(x=>x.id==id);
+  if(e){document.getElementById('c-to').value=e.fromEmail||'';document.getElementById('c-subject').value='Re: '+(e.subject||'');document.getElementById('c-body').value='\n\n---\nEn respuesta a: '+(e.subject||'');}
+  openCompose();
+}
+
+function forward(id){
+  const e=emails.find(x=>x.id==id);
+  if(e){document.getElementById('c-to').value='';document.getElementById('c-subject').value='Fwd: '+(e.subject||'');document.getElementById('c-body').value='\n\n---\nMensaje de: '+(e.from||'');}
+  openCompose();
+}
+
+function openCompose(){document.getElementById('compose').classList.add('open');}
+function closeCompose(){
+  document.getElementById('compose').classList.remove('open');
+  ['c-to','c-cc','c-subject','c-body'].forEach(id=>document.getElementById(id).value='');
+  receipts={delivery:false,read:false};
+  ['delivery','read'].forEach(t=>document.getElementById('tr-'+t).classList.remove('on'));
+  attachFiles=[];
+  renderAttachList();
+}
+
+async function sendEmail(){
+  const to=document.getElementById('c-to').value.trim();
+  const cc=document.getElementById('c-cc').value.trim();
+  const subject=document.getElementById('c-subject').value.trim();
+  const text=document.getElementById('c-body').value.trim();
+  if(!to||!subject||!text){toast('Completa Para, Asunto y Mensaje','err');return;}
+  const btn=document.getElementById('send-btn');
+  btn.textContent='⏳ Enviando...'; btn.disabled=true;
+  try {
+    const fd = new FormData();
+    fd.append('to', to);
+    if(cc) fd.append('cc', cc);
+    fd.append('subject', subject);
+    fd.append('text', text);
+    fd.append('requestDelivery', receipts.delivery);
+    fd.append('requestRead', receipts.read);
+    attachFiles.forEach(f => fd.append('attachments', f));
+    const r = await fetch('/api/send', { method:'POST', body: fd });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.error);
+    closeCompose();
+    toast('✓ Correo enviado'+(attachFiles.length?` con ${attachFiles.length} adjunto${attachFiles.length>1?'s':''}` : ''));
+  } catch(e){toast('Error: '+e.message,'err');}
+  finally{btn.textContent='✉️ Enviar';btn.disabled=false;}
+}
+
+loadEmails();
+</script>
+</body>
+</html>
